@@ -68,6 +68,18 @@ public class TheMother extends Bot {
                 continue;
             }
 
+            for(Move move : movesAttack){
+                if(move.getPlayer() == p.getId()){
+                    moves.add(move);
+                    moveFound = true;
+                    break;
+                }
+            }
+
+            if(moveFound){
+                continue;
+            }
+
             for(Move move : movesExploreUnseen){
                 if(move.getPlayer() == p.getId()){
                     moves.add(move);
@@ -92,15 +104,7 @@ public class TheMother extends Bot {
             //    continue;
             //}
 
-            for(Move move : movesAttack){
-                if(move.getPlayer() == p.getId()){
-                    moves.add(move);
-                    moveFound = true;
-                    break;
-                }
-            }
-
-            System.out.println("here");
+            //System.out.println("here");
         }
 
         
