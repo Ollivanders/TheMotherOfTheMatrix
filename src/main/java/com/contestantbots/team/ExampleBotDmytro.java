@@ -26,15 +26,32 @@ public class ExampleBotDmytro extends Bot {
     public List<Move> makeMoves(final GameState gameState) {
         gameStateLogger.process(gameState);
 
-                
+        GameMap map = gameState.getMap();
         List<Move> moves = new ArrayList<Move>();
         Set<Player> players = gameState.getPlayers();
         Set<Collectable> collectables = gameState.getCollectables();
 
         for(Player p : players){
-            Direction dir = Direction.SOUTH;
             if(p.getOwner() == this.getId()){
-                Move move = new MoveImpl(p.getId(), dir);
+                List<CollectableDistance> distances = new ArrayList<CollectableDistance>();
+                for(Collectable c : collectables){
+                    distances.add(new CollectableDistance(c, p.getPosition(), map));
+                }
+                Collections.sort(distances);
+
+                System.out.println(distances.size());
+
+                Move move = new MoveImpl(p.getId(), Direction.EAST);
+                try{
+                    Optional<Direction> dir = map.directionsTowards(p.getPosition(), distances.get(0).collectable.getPosition()).findFirst();
+                    if(dir.isPresent()){
+                        move = new MoveImpl(p.getId(), dir.get());
+                    }
+
+                } catch(Exception e){
+                    
+                }
+                
                 moves.add(move);
             }
         }
@@ -58,6 +75,20 @@ public class ExampleBotDmytro extends Bot {
         @Override
         public Direction getDirection() {
             return direction;
+        }
+    }
+
+    public class CollectableDistance implements Comparable<CollectableDistance>{
+        public Collectable collectable;
+        public int distance;
+        public CollectableDistance(Collectable c, Position pos, GameMap map){
+            this.collectable = c;
+            this.distance = map.distance(this.collectable.getPosition(), pos);
+        }
+
+        @Override
+        public int compareTo(CollectableDistance cd){
+            return this.distance - cd.distance;
         }
     }
 

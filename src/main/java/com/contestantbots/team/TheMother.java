@@ -27,6 +27,12 @@ public class TheMother extends Bot {
         gameStateLogger.process(gameState);
 
         List<Move> moves = new ArrayList<>();
+        
+        List<Move> movesExplore = new ArrayList<>();
+        List<Move> movesCollect = new ArrayList<>();
+        List<Move> movesExploreUnseen = new ArrayList<>();
+        List<Move> movesAttack = new ArrayList<>();
+
         List<Position> nextPositions = new ArrayList<>();
         Set<Position> unseenPositions = new HashSet<>();
 
@@ -41,10 +47,63 @@ public class TheMother extends Bot {
         updateUnseenLocations(gameState, unseenPositions);
         updateEnemySpawnPointLocations(gameState);
 
-        moves.addAll(doExploreUnseen(gameState, assignedPlayerDestinations, nextPositions, unseenPositions));
-        //moves.addAll(doCollect(gameState, assignedPlayerDestinations, nextPositions));
-        //moves.addAll(doExplore(gameState, nextPositions));
-        //moves.addAll(doAttack(gameState, assignedPlayerDestinations, nextPositions));
+        Set<Player> players = gameState.getPlayers();
+        
+        movesExploreUnseen.addAll(doExploreUnseen(players, gameState, assignedPlayerDestinations, nextPositions, unseenPositions));
+        movesCollect.addAll(doCollect(players, gameState, assignedPlayerDestinations, nextPositions));
+        movesExplore.addAll(doExplore(players, gameState, nextPositions));
+        movesAttack.addAll(doAttack(players, gameState, assignedPlayerDestinations, nextPositions));
+
+        for(Player p : players){
+            boolean moveFound = false;
+            for(Move move : movesCollect){
+                if(move.getPlayer() == p.getId()){
+                    moves.add(move);
+                    moveFound = true;
+                    break;
+                }
+            }
+
+            if(moveFound){
+                continue;
+            }
+
+            for(Move move : movesExploreUnseen){
+                if(move.getPlayer() == p.getId()){
+                    moves.add(move);
+                    moveFound = true;
+                    break;
+                }
+            }
+
+            if(moveFound){
+                continue;
+            }
+
+            //for(Move move : movesExplore){
+            //    if(move.getPlayer() == p.getId()){
+            //        moves.add(move);
+            //        moveFound = true;
+            //        break;
+            //    }
+            //}
+//
+            //if(moveFound){
+            //    continue;
+            //}
+
+            for(Move move : movesAttack){
+                if(move.getPlayer() == p.getId()){
+                    moves.add(move);
+                    moveFound = true;
+                    break;
+                }
+            }
+
+            System.out.println("here");
+        }
+
+        
 
         return moves;
     }
@@ -103,10 +162,10 @@ public class TheMother extends Bot {
     }
 
 
-    private List<Move> doExplore(final GameState gameState, final List<Position> nextPositions) {
+    private List<Move> doExplore(Set<Player> p,final GameState gameState, final List<Position> nextPositions) {
         List<Move> exploreMoves = new ArrayList<>();
 
-        exploreMoves.addAll(gameState.getPlayers().stream()
+        exploreMoves.addAll(p.stream()
                 .filter(player -> isMyPlayer(player))
                 .map(player -> doMove(gameState, nextPositions, player))
                 .collect(Collectors.toList()));
@@ -141,12 +200,12 @@ public class TheMother extends Bot {
         return player.getOwner().equals(getId());
     }
 
-    private List<Move> doCollect(final GameState gameState, final Map<Player, Position> assignedPlayerDestinations, final List<Position> nextPositions) {
+    private List<Move> doCollect(Set<Player> p, final GameState gameState, final Map<Player, Position> assignedPlayerDestinations, final List<Position> nextPositions) {
         Set<Position> collectablePositions = gameState.getCollectables().stream()
                 .map(collectable -> collectable.getPosition())
                 .collect(Collectors.toSet());
 
-        Set<Player> players = gameState.getPlayers().stream()
+        Set<Player> players = p.stream()
                 .filter(player -> isMyPlayer(player))
                 .collect(Collectors.toSet());
 
@@ -226,10 +285,10 @@ public class TheMother extends Bot {
                 .flatMap(Function.identity());
     }
 
-    private List<Move> doExploreUnseen(final GameState gameState, final Map<Player, Position> assignedPlayerDestinations, final List<Position> nextPositions, Set<Position> unseenPositions) {
+    private List<Move> doExploreUnseen(Set<Player> p, final GameState gameState, final Map<Player, Position> assignedPlayerDestinations, final List<Position> nextPositions, Set<Position> unseenPositions) {
         List<Move> exploreMoves = new ArrayList<>();
 
-        Set<Player> players = gameState.getPlayers().stream()
+        Set<Player> players = p.stream()
                 .filter(player -> isMyPlayer(player))
                 .filter(player -> !assignedPlayerDestinations.containsKey(player))
                 .collect(Collectors.toSet());
@@ -255,11 +314,11 @@ public class TheMother extends Bot {
                 .collect(Collectors.toList()));
     }
 
-    private List<Move> doAttack(final GameState gameState, final Map<Player, Position> assignedPlayerDestinations,
+    private List<Move> doAttack(Set<Player> p, final GameState gameState, final Map<Player, Position> assignedPlayerDestinations,
                                 final List<Position> nextPositions) {
         List<Move> attackMoves = new ArrayList<>();
 
-        Set<Player> players = gameState.getPlayers().stream()
+        Set<Player> players = p.stream()
                 .filter(player -> isMyPlayer(player))
                 .filter(player -> !assignedPlayerDestinations.containsKey(player.getId()))
                 .collect(Collectors.toSet());
