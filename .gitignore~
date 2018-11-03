@@ -26,5 +26,3 @@ gradle-app.setting
 
 # The install scripts download JDKs here
 tools/
-
-gradle.properties
