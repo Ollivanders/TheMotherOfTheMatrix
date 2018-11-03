@@ -31,9 +31,17 @@ public class ExampleBotDmytro extends Bot {
         Set<Player> players = gameState.getPlayers();
         Set<Collectable> collectables = gameState.getCollectables();
 
-        //Move m = new Move();
+        for(Player p : players){
+            Direction dir = Direction.SOUTH;
+            if(p.getOwner() == this.getId()){
+                Move move = new MoveImpl(p.getId(), dir);
+                moves.add(move);
+            }
+        }
 
-        return new ArrayList<>();
+        //Move m = new MoveImpl(playerId, direction);
+
+        return moves;
     }
 
     public class MoveImpl implements Move {
